@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BWIP{% endblock %} - Bathing Water Information Portal</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --bwip-primary: #006699;
+            --bwip-secondary: #0099cc;
+            --bwip-light: #f8f9fa;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: var(--bwip-primary) !important;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: var(--bwip-light);
+            border-right: 1px solid #dee2e6;
+        }
+
+        .sidebar .nav-link {
+            color: #333;
+            padding: 0.75rem 1rem;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: var(--bwip-primary);
+            color: white;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0.5rem;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .card-header {
+            background-color: var(--bwip-primary);
+            color: white;
+        }
+
+        .btn-primary {
+            background-color: var(--bwip-primary);
+            border-color: var(--bwip-primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--bwip-secondary);
+            border-color: var(--bwip-secondary);
+        }
+
+        .footer {
+            background-color: var(--bwip-light);
+            border-top: 1px solid #dee2e6;
+            padding: 1rem 0;
+        }
+
+        .quality-excellent { color: #28a745; }
+        .quality-good { color: #17a2b8; }
+        .quality-sufficient { color: #ffc107; }
+        .quality-poor { color: #dc3545; }
+
+        .alert-badge {
+            background-color: #dc3545;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    {% include "includes/_navbar.html" %}
+
+    <div class="container-fluid">
+        <div class="row">
+            {% if user.is_authenticated %}
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'posters:dashboard' %}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'generate' in request.path %}active{% endif %}" href="{% url 'posters:generate' %}">
+                                <i class="bi bi-file-earmark-plus"></i> Generate Poster
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'history' in request.path %}active{% endif %}" href="{% url 'posters:history' %}">
+                                <i class="bi bi-clock-history"></i> Poster History
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'locations' in request.path %}active{% endif %}" href="{% url 'locations:list' %}">
+                                <i class="bi bi-geo-alt"></i> Locations
+                            </a>
+                        </li>
+                        <hr>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'profile' in request.path %}active{% endif %}" href="{% url 'accounts:profile' %}">
+                                <i class="bi bi-person"></i> Profile
+                            </a>
+                        </li>
+                        {% if user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:index' %}">
+                                <i class="bi bi-gear"></i> Admin
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+            {% endif %}
+
+            <!-- Main Content -->
+            <main class="{% if user.is_authenticated %}col-md-9 ms-sm-auto col-lg-10 px-md-4{% else %}col-12{% endif %}">
+                <div class="py-4">
+                    {% include "includes/_messages.html" %}
+
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    {% include "includes/_footer.html" %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

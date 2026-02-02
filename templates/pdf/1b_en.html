@@ -1,0 +1,139 @@
+{% extends "pdf/base_poster.html" %}
+
+{% block content %}
+<!-- Template 1B: Identified Bathing Water - Temporary Restrictions -->
+
+<!-- Alert Section -->
+<div class="section">
+    <div class="alert-box danger">
+        <div class="alert-title">TEMPORARY BATHING ADVISORY IN EFFECT</div>
+        <p style="font-size: 14pt;">
+            {% if alert_details.message %}
+            {{ alert_details.message }}
+            {% else %}
+            A temporary advisory is in place for this bathing water. Swimming is not recommended at this time.
+            {% endif %}
+        </p>
+        {% if alert_details.start_date %}
+        <p style="font-size: 12pt; margin-top: 10px; color: #666;">
+            Advisory issued: {{ alert_details.start_date }}
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Water Quality Section -->
+<div class="section">
+    <div class="section-title">Water Quality Classification</div>
+    <div class="water-quality-box sufficient">
+        <div class="quality-label sufficient">{{ water_quality_status|default:"Advisory Active" }}</div>
+        <p style="margin-top: 10px; font-size: 14pt;">
+            Classification Year: {{ epa_data.classification_year|default:"2024" }}
+        </p>
+        <p style="font-size: 12pt; color: #666;">
+            Note: Current conditions may differ from annual classification
+        </p>
+    </div>
+</div>
+
+<!-- Recent Results -->
+<div class="section">
+    <div class="section-title">Recent Water Quality Results</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>E. coli (cfu/100ml)</th>
+                <th>Enterococci (cfu/100ml)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for measurement in recent_measurements %}
+            <tr>
+                <td>{{ measurement.date }}</td>
+                <td>{{ measurement.ecoli|default:"-" }}</td>
+                <td>{{ measurement.enterococci|default:"-" }}</td>
+                <td>{{ measurement.quality|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td>{{ last_sample_date|default:"Recent" }}</td>
+                <td>{{ ecoli_value|default:"-" }}</td>
+                <td>{{ enterococci_value|default:"-" }}</td>
+                <td>-</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Important Notice -->
+<div class="section">
+    <div style="background: #f8d7da; border: 2px solid #dc3545; border-radius: 10px; padding: 20px;">
+        <h3 style="color: #721c24; margin-bottom: 15px;">Important Information</h3>
+        <ul style="font-size: 13pt; color: #721c24;">
+            <li>Swimming is not recommended while this advisory is in effect</li>
+            <li>This is a temporary measure and will be reviewed regularly</li>
+            <li>Check beaches.ie for the latest status before visiting</li>
+            <li>The advisory may be lifted once water quality improves</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Facilities -->
+<div class="section">
+    <div class="section-title">Facilities Available</div>
+    <div class="facilities-grid">
+        {% if has_toilets %}
+        <div class="facility-item">Toilets</div>
+        {% endif %}
+        {% if has_parking %}
+        <div class="facility-item">Parking</div>
+        {% endif %}
+        {% if has_lifeguard %}
+        <div class="facility-item">Lifeguard</div>
+        {% endif %}
+        {% if has_disability_access %}
+        <div class="facility-item">Accessible</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Safety & QR Codes -->
+<div class="section">
+    <div class="two-column">
+        <div>
+            <div class="section-title" style="border: none;">Emergency Contact</div>
+            <p style="font-size: 14pt; background: #f8d7da; padding: 15px; border-radius: 5px;">
+                <strong>In an emergency call:</strong><br>
+                <span style="font-size: 24pt; color: #dc3545;">112 or 999</span><br>
+                Ask for Coast Guard
+            </p>
+        </div>
+        <div>
+            <div class="section-title" style="border: none;">More Information</div>
+            <div class="qr-grid" style="justify-content: flex-start; gap: 15px;">
+                {% if qr_beach_url %}
+                <div class="qr-item">
+                    <img src="{{ qr_beach_url }}" alt="Beach Info QR" style="width: 80px; height: 80px;">
+                    <div class="qr-label">Beach Info</div>
+                </div>
+                {% endif %}
+                {% if qr_beaches_ie %}
+                <div class="qr-item">
+                    <img src="{{ qr_beaches_ie }}" alt="beaches.ie QR" style="width: 80px; height: 80px;">
+                    <div class="qr-label">beaches.ie</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if debug_mode %}
+<div style="background: #fff3cd; padding: 10px; text-align: center; font-size: 10pt; color: #856404;">
+    DEBUG MODE: This poster was generated with mock data
+</div>
+{% endif %}
+{% endblock %}

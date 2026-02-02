@@ -1,0 +1,95 @@
+{% extends "pdf/base_poster.html" %}
+
+{% block content %}
+<!-- Template 2A: Non-Identified Bathing Water - With Restrictions -->
+
+<!-- Classification Notice -->
+<div class="section">
+    <div style="background: #6c757d; color: white; padding: 20px; border-radius: 10px; text-align: center;">
+        <h3 style="margin-bottom: 10px;">Non-Identified Bathing Water</h3>
+        <p>This location is not an officially designated bathing water</p>
+    </div>
+</div>
+
+<!-- Alert Section -->
+<div class="section">
+    <div class="alert-box danger">
+        <div class="alert-title">ADVISORY IN EFFECT</div>
+        <p style="font-size: 14pt;">
+            {% if alert_details.message %}
+            {{ alert_details.message }}
+            {% else %}
+            An advisory is in place for this location. Swimming is not recommended at this time.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Information -->
+<div class="section">
+    <div class="section-title">Important Information</div>
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+        <h4 style="color: #006699; margin-bottom: 15px;">What does 'Non-Identified' mean?</h4>
+        <ul style="font-size: 13pt;">
+            <li>This bathing water is not regularly monitored by the EPA</li>
+            <li>Water quality data may not be available or up-to-date</li>
+            <li>Swim at your own risk</li>
+            <li>Consider visiting an identified bathing water instead</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Safety Advice -->
+<div class="section">
+    <div class="section-title">Safety Advice</div>
+    <div class="two-column">
+        <div>
+            <h4 style="color: #dc3545;">Due to Current Advisory:</h4>
+            <ul style="font-size: 12pt;">
+                <li>Swimming is not recommended</li>
+                <li>Avoid water contact if possible</li>
+                <li>Keep children and pets away from water</li>
+                <li>Check beaches.ie for updates</li>
+            </ul>
+        </div>
+        <div>
+            <h4 style="color: #006699;">General Safety:</h4>
+            <ul style="font-size: 12pt;">
+                <li>Never swim alone</li>
+                <li>Be aware of currents and tides</li>
+                <li>Don't swim after drinking alcohol</li>
+                <li>Know your limits</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Emergency & QR Codes -->
+<div class="section">
+    <div class="two-column">
+        <div>
+            <p style="font-size: 14pt; background: #f8d7da; padding: 15px; border-radius: 5px;">
+                <strong>Emergency:</strong><br>
+                <span style="font-size: 24pt; color: #dc3545;">112 or 999</span><br>
+                Ask for Coast Guard
+            </p>
+        </div>
+        <div>
+            <div class="qr-grid" style="justify-content: flex-start; gap: 15px;">
+                {% if qr_beaches_ie %}
+                <div class="qr-item">
+                    <img src="{{ qr_beaches_ie }}" alt="beaches.ie QR" style="width: 80px; height: 80px;">
+                    <div class="qr-label">Find Safe Beaches</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if debug_mode %}
+<div style="background: #fff3cd; padding: 10px; text-align: center; font-size: 10pt; color: #856404;">
+    DEBUG MODE: This poster was generated with mock data
+</div>
+{% endif %}
+{% endblock %}

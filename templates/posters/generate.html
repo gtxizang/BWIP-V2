@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Poster{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-earmark-plus"></i> Generate Poster</h2>
+    <a href="{% url 'posters:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Poster Options</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="poster-form">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Hidden field to track recommended template -->
+                    <input type="hidden" name="recommended_template_code" id="recommended-template-code-input" value="">
+
+                    <!-- Step 1: Select Location -->
+                    <div class="mb-4">
+                        <h6 class="text-primary mb-3">
+                            <span class="badge bg-primary me-2">1</span>
+                            Select Location
+                        </h6>
+                        <div class="mb-3">
+                            <label for="location-select" class="form-label">Bathing Water Location</label>
+                            {{ form.location }}
+                            {% if form.location.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.location.errors|join:", " }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Select Template (hidden until location selected) -->
+                    <div class="mb-4" id="template-section" style="display: none;">
+                        <h6 class="text-primary mb-3">
+                            <span class="badge bg-primary me-2">2</span>
+                            Select Template
+                        </h6>
+
+                        <!-- Recommendation Alert -->
+                        <div id="template-recommendation" class="alert alert-success mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                                <div>
+                                    <strong>Suggested Template:</strong>
+                                    <span id="recommended-template-code" class="badge bg-success ms-2 fs-6"></span>
+                                    <p class="mb-0 mt-1 small" id="recommendation-reason"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="template-select" class="form-label">Available Templates for this Location</label>
+                            <select name="template" id="template-select" class="form-select">
+                                <!-- Will be populated by JavaScript -->
+                            </select>
+                            {% if form.template.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.template.errors|join:", " }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Override Warning (shown when user selects different template) -->
+                        <div id="override-warning" class="alert alert-warning" style="display: none;">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+                                <div class="flex-grow-1">
+                                    <strong>Template Override</strong>
+                                    <p class="mb-2 small">You are selecting a different template than recommended. Please provide a reason for audit purposes.</p>
+                                    <div class="mb-0">
+                                        <label for="override-reason-input" class="form-label small fw-bold">Override Reason (Required)</label>
+                                        <textarea
+                                            name="override_reason"
+                                            id="override-reason-input"
+                                            class="form-control"
+                                            rows="2"
+                                            placeholder="e.g., Local knowledge of water conditions, recent incident not yet in EPA data, scheduled event..."></textarea>
+                                        <div class="form-text">This will be recorded in the audit log.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Custom Notification (hidden until location selected) -->
+                    <div class="mb-4" id="notification-section" style="display: none;">
+                        <h6 class="text-primary mb-3">
+                            <span class="badge bg-primary me-2">3</span>
+                            Custom Notification <span class="text-muted fw-normal">(Optional)</span>
+                        </h6>
+                        <div class="mb-3">
+                            <label for="custom-notification-input" class="form-label">Add a Custom Message to the Poster</label>
+                            <textarea
+                                name="custom_notification"
+                                id="custom-notification-input"
+                                class="form-control"
+                                rows="2"
+                                placeholder="e.g., Beach cleanup scheduled for Saturday 10am, Temporary car park closure..."></textarea>
+                            <div class="form-text">This message will appear prominently on the poster. Use for local notices, events, or additional warnings.</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Poster Settings (hidden until location selected) -->
+                    <div class="mb-4" id="settings-section" style="display: none;">
+                        <h6 class="text-primary mb-3">
+                            <span class="badge bg-primary me-2">4</span>
+                            Poster Settings
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="id_size" class="form-label">Size</label>
+                                {{ form.size }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="id_orientation" class="form-label">Orientation</label>
+                                {{ form.orientation }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="id_language" class="form-label">Language</label>
+                                {{ form.language }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="generate-btn" disabled>
+                            <i class="bi bi-file-earmark-pdf"></i> Generate Poster
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- API Response Panel -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-cloud-download"></i> beaches.ie API Data</h6>
+            </div>
+            <div class="card-body" id="api-response">
+                <p class="text-muted mb-0"><i class="bi bi-arrow-left-circle"></i> Select a location to fetch water quality data from the EPA API.</p>
+            </div>
+        </div>
+
+        <!-- Template Guide -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-question-circle"></i> Template Guide</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong class="text-primary">Identified Beaches:</strong>
+                    <ul class="list-unstyled small mb-0 mt-1">
+                        <li><span class="badge bg-success">1A</span> No restrictions</li>
+                        <li><span class="badge bg-warning text-dark">1B</span> Temporary restrictions</li>
+                        <li><span class="badge bg-danger">1C</span> Season-long restrictions</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong class="text-secondary">Non-Identified Beaches:</strong>
+                    <ul class="list-unstyled small mb-0 mt-1">
+                        <li><span class="badge bg-warning text-dark">2A</span> With restrictions</li>
+                        <li><span class="badge bg-secondary">2B</span> No restrictions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const locationSelect = document.getElementById('location-select');
+    const templateSelect = document.getElementById('template-select');
+    const templateSection = document.getElementById('template-section');
+    const notificationSection = document.getElementById('notification-section');
+    const settingsSection = document.getElementById('settings-section');
+    const apiResponse = document.getElementById('api-response');
+    const recommendationDiv = document.getElementById('template-recommendation');
+    const recommendedCodeSpan = document.getElementById('recommended-template-code');
+    const recommendedCodeInput = document.getElementById('recommended-template-code-input');
+    const recommendationReason = document.getElementById('recommendation-reason');
+    const overrideWarning = document.getElementById('override-warning');
+    const overrideReasonInput = document.getElementById('override-reason-input');
+    const generateBtn = document.getElementById('generate-btn');
+
+    let currentRecommendedCode = '';
+
+    async function loadLocationData(locationId) {
+        if (!locationId) {
+            apiResponse.innerHTML = '<p class="text-muted mb-0"><i class="bi bi-arrow-left-circle"></i> Select a location to fetch water quality data from the EPA API.</p>';
+            templateSection.style.display = 'none';
+            notificationSection.style.display = 'none';
+            settingsSection.style.display = 'none';
+            generateBtn.disabled = true;
+            return;
+        }
+
+        apiResponse.innerHTML = `
+            <div class="text-center py-3">
+                <div class="spinner-border text-info" role="status"></div>
+                <p class="mt-2 mb-0">Fetching data from beaches.ie API...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`{% url 'posters:template_recommendation' 0 %}`.replace('0', locationId));
+
+            if (!response.ok) {
+                throw new Error(`API returned ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('API Response:', data);
+
+            // Store the recommended template code
+            currentRecommendedCode = data.recommended_template;
+            recommendedCodeInput.value = currentRecommendedCode;
+
+            // Show the template and settings sections
+            templateSection.style.display = 'block';
+            notificationSection.style.display = 'block';
+            settingsSection.style.display = 'block';
+            generateBtn.disabled = false;
+
+            // Populate template dropdown with ONLY available templates
+            templateSelect.innerHTML = '';
+            const availableTemplates = data.templates || [];
+            availableTemplates.forEach((t, index) => {
+                const option = document.createElement('option');
+                option.value = t.id;  // Use primary key as value for form
+                option.text = `${t.code} - ${t.name}`;
+                option.dataset.code = t.code;
+                // Pre-select the recommended template
+                if (t.code === data.recommended_template) {
+                    option.selected = true;
+                }
+                templateSelect.appendChild(option);
+            });
+
+            // Show recommendation
+            recommendedCodeSpan.textContent = data.recommended_template;
+            recommendationReason.textContent = data.recommendation_reason;
+
+            // Reset override warning
+            checkTemplateOverride();
+
+            // Format API response nicely
+            const epa = data.epa_data;
+            apiResponse.innerHTML = `
+                <div class="api-data">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="mb-1">${epa.beach_name || 'Unknown Beach'}</h6>
+                            <span class="badge bg-${epa.classification === 'IDENTIFIED' ? 'primary' : 'secondary'}">
+                                ${epa.classification || 'Unknown'}
+                            </span>
+                        </div>
+                        ${epa.has_active_alerts ? '<span class="badge bg-danger">ALERT ACTIVE</span>' : '<span class="badge bg-success">No Alerts</span>'}
+                    </div>
+
+                    <table class="table table-sm mb-3">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted">Last Sample</td>
+                                <td class="text-end fw-bold">${epa.last_sample_date || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">E. coli</td>
+                                <td class="text-end fw-bold">${epa.ecoli_value !== null ? epa.ecoli_value + ' cfu/100ml' : 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Enterococci</td>
+                                <td class="text-end fw-bold">${epa.enterococci_value !== null ? epa.enterococci_value + ' cfu/100ml' : 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Quality Status</td>
+                                <td class="text-end">
+                                    <span class="badge bg-${getQualityBadgeClass(epa.quality_status)}">${epa.quality_status || 'N/A'}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    ${epa.debug_mode ? '<div class="alert alert-warning mb-0 py-2 small"><i class="bi bi-exclamation-triangle"></i> Mock data (API not connected)</div>' : '<div class="alert alert-info mb-0 py-2 small"><i class="bi bi-check-circle"></i> Live EPA data</div>'}
+                </div>
+            `;
+
+        } catch (error) {
+            console.error('Error fetching template recommendation:', error);
+            apiResponse.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Error loading API data</strong>
+                    <p class="mb-0 small mt-1">${error.message}</p>
+                </div>
+            `;
+            templateSection.style.display = 'none';
+            notificationSection.style.display = 'none';
+            settingsSection.style.display = 'none';
+            generateBtn.disabled = true;
+        }
+    }
+
+    function getQualityBadgeClass(status) {
+        const statusMap = {
+            'EXCELLENT': 'success',
+            'GOOD': 'info',
+            'SUFFICIENT': 'warning',
+            'POOR': 'danger'
+        };
+        return statusMap[status] || 'secondary';
+    }
+
+    function checkTemplateOverride() {
+        const selectedOption = templateSelect.options[templateSelect.selectedIndex];
+        const selectedCode = selectedOption ? selectedOption.dataset.code : '';
+
+        if (currentRecommendedCode && selectedCode && selectedCode !== currentRecommendedCode) {
+            overrideWarning.style.display = 'block';
+            overrideReasonInput.required = true;
+        } else {
+            overrideWarning.style.display = 'none';
+            overrideReasonInput.required = false;
+            overrideReasonInput.value = '';
+        }
+    }
+
+    locationSelect.addEventListener('change', function() {
+        loadLocationData(this.value);
+    });
+
+    templateSelect.addEventListener('change', function() {
+        checkTemplateOverride();
+    });
+
+    // Form validation before submit
+    document.getElementById('poster-form').addEventListener('submit', function(e) {
+        const selectedOption = templateSelect.options[templateSelect.selectedIndex];
+        const selectedCode = selectedOption ? selectedOption.dataset.code : '';
+
+        // Check if override reason is required but not provided
+        if (currentRecommendedCode && selectedCode !== currentRecommendedCode) {
+            if (!overrideReasonInput.value.trim()) {
+                e.preventDefault();
+                overrideReasonInput.classList.add('is-invalid');
+                overrideReasonInput.focus();
+                alert('Please provide a reason for overriding the recommended template.');
+                return false;
+            }
+        }
+
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Generating...';
+    });
+
+    // On page load, trigger the API call if location is pre-selected
+    document.addEventListener('DOMContentLoaded', function() {
+        if (locationSelect.value) {
+            loadLocationData(locationSelect.value);
+        }
+    });
+</script>
+{% endblock %}

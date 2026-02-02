@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}{{ location.name_en }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    #location-map {
+        height: 300px;
+        border-radius: 0.375rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-geo-alt"></i> {{ location.name_en }}</h2>
+    <div>
+        <a href="{% url 'posters:generate' %}?location={{ location.pk }}" class="btn btn-primary">
+            <i class="bi bi-file-earmark-plus"></i> Generate Poster
+        </a>
+        <a href="{% url 'locations:list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Locations
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Location Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Location Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">English Name:</th>
+                                <td>{{ location.name_en }}</td>
+                            </tr>
+                            <tr>
+                                <th>Irish Name:</th>
+                                <td>{{ location.name_ga|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th>beaches.ie ID:</th>
+                                <td><code>{{ location.beaches_ie_id }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>Classification:</th>
+                                <td>
+                                    <span class="badge bg-{% if location.is_identified %}primary{% else %}secondary{% endif %}">
+                                        {{ location.get_classification_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Latitude:</th>
+                                <td>{{ location.latitude }}</td>
+                            </tr>
+                            <tr>
+                                <th>Longitude:</th>
+                                <td>{{ location.longitude }}</td>
+                            </tr>
+                            <tr>
+                                <th>Organisation:</th>
+                                <td>{{ location.local_authority.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    {% if location.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {% if location.description_en %}
+                <hr>
+                <h6>Description</h6>
+                <p class="mb-0">{{ location.description_en }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Current Water Quality -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-droplet"></i> Current Water Quality</h5>
+            </div>
+            <div class="card-body">
+                {% if current_quality %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="text-center p-4 bg-light rounded">
+                            <h3 class="quality-{{ current_quality.quality_status|lower }}">
+                                {{ current_quality.get_quality_status_display }}
+                            </h3>
+                            <p class="text-muted mb-0">
+                                Sample Date: {{ current_quality.sample_date|date:"d M Y" }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <th>E. coli:</th>
+                                <td>{{ current_quality.ecoli_value|default:"-" }} cfu/100ml</td>
+                            </tr>
+                            <tr>
+                                <th>Enterococci:</th>
+                                <td>{{ current_quality.enterococci_value|default:"-" }} cfu/100ml</td>
+                            </tr>
+                            {% if current_quality.classification_year %}
+                            <tr>
+                                <th>Classification Year:</th>
+                                <td>{{ current_quality.classification_year }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No water quality data available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        {% if active_alerts %}
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Active Alerts</h5>
+            </div>
+            <div class="card-body">
+                {% for alert in active_alerts %}
+                <div class="alert alert-warning mb-{% if forloop.last %}0{% else %}3{% endif %}">
+                    <h6 class="alert-heading">{{ alert.title_en }}</h6>
+                    <p class="mb-1">{{ alert.message_en }}</p>
+                    <small class="text-muted">
+                        Active since {{ alert.start_date|date:"d M Y" }}
+                        {% if alert.is_season_long %} (Season-long){% endif %}
+                    </small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Water Quality History -->
+        {% if quality_history %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Recent Measurements</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>E. coli</th>
+                                <th>Enterococci</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quality in quality_history %}
+                            <tr>
+                                <td>{{ quality.sample_date|date:"d M Y" }}</td>
+                                <td>{{ quality.ecoli_value|default:"-" }}</td>
+                                <td>{{ quality.enterococci_value|default:"-" }}</td>
+                                <td class="quality-{{ quality.quality_status|lower }}">
+                                    {{ quality.get_quality_status_display }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Map -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-map"></i> Map</h6>
+            </div>
+            <div class="card-body">
+                <div id="location-map"></div>
+            </div>
+        </div>
+
+        <!-- Facilities -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-building"></i> Facilities</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-{{ facilities.toilets|yesno:'check-circle-fill text-success,x-circle-fill text-danger' }}"></i>
+                        Toilets
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-{{ facilities.parking|yesno:'check-circle-fill text-success,x-circle-fill text-danger' }}"></i>
+                        Parking
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-{{ facilities.lifeguard|yesno:'check-circle-fill text-success,x-circle-fill text-danger' }}"></i>
+                        Lifeguard
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-{{ facilities.disability_access|yesno:'check-circle-fill text-success,x-circle-fill text-danger' }}"></i>
+                        Disability Access
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-{{ facilities.blue_flag|yesno:'check-circle-fill text-success,x-circle-fill text-danger' }}"></i>
+                        Blue Flag
+                    </li>
+                    <li>
+                        <i class="bi bi-{{ facilities.dogs_allowed|yesno:'check-circle-fill text-success,x-circle-fill text-danger' }}"></i>
+                        Dogs Allowed
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h6>
+            </div>
+            <div class="card-body d-grid gap-2">
+                <a href="{% url 'posters:generate' %}?location={{ location.pk }}" class="btn btn-primary">
+                    <i class="bi bi-file-earmark-plus"></i> Generate Poster
+                </a>
+                <a href="https://www.beaches.ie/beach/{{ location.beaches_ie_id }}" target="_blank" class="btn btn-outline-secondary">
+                    <i class="bi bi-box-arrow-up-right"></i> View on beaches.ie
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const map = L.map('location-map').setView([{{ location.latitude }}, {{ location.longitude }}], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([{{ location.latitude }}, {{ location.longitude }}]).addTo(map)
+        .bindPopup('<strong>{{ location.name_en }}</strong>')
+        .openPopup();
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "pdf/base_poster.html" %}
+
+{% block content %}
+<!-- Template 1C: Identified Bathing Water - Season-Long Restrictions -->
+
+<!-- Major Alert Section -->
+<div class="section">
+    <div style="background: #dc3545; color: white; padding: 30px; border-radius: 10px; text-align: center;">
+        <h2 style="font-size: 28pt; margin-bottom: 15px;">BATHING NOT RECOMMENDED</h2>
+        <p style="font-size: 16pt;">
+            A season-long advisory is in place for this bathing water.
+        </p>
+    </div>
+</div>
+
+<!-- Reason for Advisory -->
+<div class="section">
+    <div class="alert-box danger">
+        <div class="alert-title">Reason for Advisory</div>
+        <p style="font-size: 14pt;">
+            {% if alert_details.message %}
+            {{ alert_details.message }}
+            {% else %}
+            This bathing water has been classified as having poor water quality for the current bathing season.
+            Swimming is not recommended.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Water Quality Section -->
+<div class="section">
+    <div class="section-title">Water Quality Classification</div>
+    <div class="water-quality-box poor">
+        <div class="quality-label poor">{{ water_quality_status|default:"Poor" }}</div>
+        <p style="margin-top: 10px; font-size: 14pt;">
+            Classification Year: {{ epa_data.classification_year|default:"2024" }}
+        </p>
+    </div>
+</div>
+
+<!-- Health Advice -->
+<div class="section">
+    <div class="section-title">Health Advice</div>
+    <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 20px;">
+        <ul style="font-size: 13pt;">
+            <li><strong>Avoid swimming</strong> at this location during the bathing season</li>
+            <li><strong>Children and elderly</strong> are particularly vulnerable to waterborne illness</li>
+            <li><strong>If you do enter the water</strong>, avoid swallowing water and shower afterwards</li>
+            <li><strong>Seek medical advice</strong> if you develop symptoms after water contact</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Alternative Beaches -->
+<div class="section">
+    <div class="section-title">Find Alternative Beaches</div>
+    <p style="font-size: 14pt; margin-bottom: 15px;">
+        Visit beaches.ie to find nearby bathing waters with excellent water quality.
+    </p>
+    <div class="qr-grid" style="justify-content: flex-start;">
+        {% if qr_beaches_ie %}
+        <div class="qr-item">
+            <img src="{{ qr_beaches_ie }}" alt="beaches.ie QR">
+            <div class="qr-label">Find Safe Beaches</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Emergency Information -->
+<div class="section">
+    <div style="background: #f8d7da; border: 2px solid #dc3545; border-radius: 10px; padding: 20px; text-align: center;">
+        <h3 style="color: #721c24; margin-bottom: 10px;">Emergency Contact</h3>
+        <p style="font-size: 24pt; color: #dc3545; font-weight: bold;">112 or 999</p>
+        <p style="font-size: 14pt; color: #721c24;">Ask for Coast Guard</p>
+    </div>
+</div>
+
+{% if debug_mode %}
+<div style="background: #fff3cd; padding: 10px; text-align: center; font-size: 10pt; color: #856404;">
+    DEBUG MODE: This poster was generated with mock data
+</div>
+{% endif %}
+{% endblock %}

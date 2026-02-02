@@ -1,0 +1,149 @@
+{% extends "pdf/base_poster.html" %}
+
+{% block content %}
+<!-- Template 1A: Identified Bathing Water - No Restrictions -->
+
+<!-- Water Quality Section -->
+<div class="section">
+    <div class="section-title">Water Quality Classification</div>
+    <div class="water-quality-box excellent">
+        <div class="quality-label excellent">{{ water_quality_status|default:"Excellent" }}</div>
+        <p style="margin-top: 10px; font-size: 14pt;">
+            Classification Year: {{ epa_data.classification_year|default:"2024" }}
+        </p>
+    </div>
+</div>
+
+<!-- Recent Results -->
+<div class="section">
+    <div class="section-title">Recent Water Quality Results</div>
+    <div class="two-column">
+        <div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>E. coli</th>
+                        <th>Enterococci</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for measurement in recent_measurements %}
+                    <tr>
+                        <td>{{ measurement.date }}</td>
+                        <td>{{ measurement.ecoli|default:"-" }} cfu/100ml</td>
+                        <td>{{ measurement.enterococci|default:"-" }} cfu/100ml</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td>{{ last_sample_date|default:"Recent" }}</td>
+                        <td>{{ ecoli_value|default:"-" }} cfu/100ml</td>
+                        <td>{{ enterococci_value|default:"-" }} cfu/100ml</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <h4 style="color: #006699; margin-bottom: 10px;">What do these numbers mean?</h4>
+            <p style="font-size: 11pt;">
+                E. coli and Intestinal Enterococci are indicator bacteria used to assess water quality.
+                Lower numbers indicate better water quality.
+            </p>
+            <ul style="font-size: 11pt; margin-top: 10px;">
+                <li><strong>Excellent:</strong> E. coli &lt;250, Enterococci &lt;100</li>
+                <li><strong>Good:</strong> E. coli &lt;500, Enterococci &lt;200</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Facilities -->
+<div class="section">
+    <div class="section-title">Facilities Available</div>
+    <div class="facilities-grid">
+        {% if has_toilets %}
+        <div class="facility-item">Toilets Available</div>
+        {% endif %}
+        {% if has_parking %}
+        <div class="facility-item">Parking Available</div>
+        {% endif %}
+        {% if has_lifeguard %}
+        <div class="facility-item">Lifeguard on Duty (Summer)</div>
+        {% endif %}
+        {% if has_disability_access %}
+        <div class="facility-item">Wheelchair Accessible</div>
+        {% endif %}
+        {% if has_blue_flag %}
+        <div class="facility-item">Blue Flag Beach</div>
+        {% endif %}
+        {% if dogs_allowed %}
+        <div class="facility-item">Dogs Allowed (on lead)</div>
+        {% else %}
+        <div class="facility-item">No Dogs Allowed</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Safety Information -->
+<div class="section">
+    <div class="section-title">Beach Safety</div>
+    <div class="two-column">
+        <div>
+            <h4 style="color: #006699;">Swimming Tips</h4>
+            <ul style="font-size: 12pt;">
+                <li>Swim at lifeguarded beaches when possible</li>
+                <li>Never swim alone</li>
+                <li>Check tide times before swimming</li>
+                <li>Be aware of rip currents</li>
+                <li>Don't swim after drinking alcohol</li>
+            </ul>
+        </div>
+        <div>
+            <h4 style="color: #006699;">Emergency</h4>
+            <p style="font-size: 14pt; background: #f8d7da; padding: 15px; border-radius: 5px;">
+                <strong>In an emergency call:</strong><br>
+                <span style="font-size: 24pt; color: #dc3545;">112 or 999</span><br>
+                Ask for Coast Guard
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- QR Codes -->
+<div class="section">
+    <div class="section-title">More Information</div>
+    <div class="qr-grid">
+        {% if qr_beach_url %}
+        <div class="qr-item">
+            <img src="{{ qr_beach_url }}" alt="Beach Info QR">
+            <div class="qr-label">Beach Information</div>
+        </div>
+        {% endif %}
+        {% if qr_weather %}
+        <div class="qr-item">
+            <img src="{{ qr_weather }}" alt="Weather QR">
+            <div class="qr-label">Weather Forecast</div>
+        </div>
+        {% endif %}
+        {% if qr_tide_tables %}
+        <div class="qr-item">
+            <img src="{{ qr_tide_tables }}" alt="Tide Tables QR">
+            <div class="qr-label">Tide Tables</div>
+        </div>
+        {% endif %}
+        {% if qr_beaches_ie %}
+        <div class="qr-item">
+            <img src="{{ qr_beaches_ie }}" alt="beaches.ie QR">
+            <div class="qr-label">beaches.ie</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if debug_mode %}
+<div style="background: #fff3cd; padding: 10px; text-align: center; font-size: 10pt; color: #856404;">
+    DEBUG MODE: This poster was generated with mock data
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="{{ language|default:'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ beach_name }} - Bathing Water Information</title>
+    <style>
+        {% block base_styles %}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .poster {
+            width: 100%;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .poster-header {
+            background-color: #006699;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .poster-title {
+            font-size: 48pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .poster-subtitle {
+            font-size: 24pt;
+            font-weight: normal;
+        }
+
+        .classification-badge {
+            display: inline-block;
+            background-color: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .poster-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #006699;
+            border-bottom: 3px solid #006699;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .water-quality-box {
+            background-color: #e8f5e9;
+            border: 3px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .water-quality-box.excellent {
+            background-color: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .water-quality-box.good {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .water-quality-box.sufficient {
+            background-color: #fff8e1;
+            border-color: #ffc107;
+        }
+
+        .water-quality-box.poor {
+            background-color: #ffebee;
+            border-color: #f44336;
+        }
+
+        .quality-label {
+            font-size: 36pt;
+            font-weight: bold;
+        }
+
+        .quality-label.excellent { color: #4caf50; }
+        .quality-label.good { color: #2196f3; }
+        .quality-label.sufficient { color: #ffc107; }
+        .quality-label.poor { color: #f44336; }
+
+        .alert-box {
+            background-color: #fff3cd;
+            border: 3px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .alert-box.danger {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .alert-title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .alert-box.danger .alert-title {
+            color: #721c24;
+        }
+
+        .facilities-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .facility-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .facility-icon {
+            width: 30px;
+            height: 30px;
+        }
+
+        .qr-grid {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .qr-item {
+            text-align: center;
+        }
+
+        .qr-item img {
+            width: 100px;
+            height: 100px;
+        }
+
+        .qr-label {
+            font-size: 10pt;
+            margin-top: 5px;
+            color: #666;
+        }
+
+        .poster-footer {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 10pt;
+            color: #666;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background-color: #006699;
+            color: white;
+        }
+
+        .two-column {
+            display: flex;
+            gap: 20px;
+        }
+
+        .two-column > div {
+            flex: 1;
+        }
+
+        @media print {
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+        {% endblock %}
+    </style>
+</head>
+<body>
+    <div class="poster">
+        {% block header %}
+        <div class="poster-header">
+            <div class="poster-title">{{ beach_name }}</div>
+            {% if beach_name_ga and language != 'en' %}
+            <div class="poster-subtitle">{{ beach_name_ga }}</div>
+            {% endif %}
+            <div class="classification-badge">
+                {% if is_identified %}Identified Bathing Water{% else %}Non-Identified Bathing Water{% endif %}
+            </div>
+        </div>
+        {% endblock %}
+
+        <div class="poster-content">
+            {% if custom_notification %}
+            <!-- Custom Notification from Local Authority -->
+            <div class="section">
+                <div class="alert-box" style="background-color: #d1ecf1; border-color: #0c5460;">
+                    <div class="alert-title" style="color: #0c5460;">
+                        <span style="font-size: 24pt;">&#9432;</span> Notice from {{ local_authority_name|default:"Local Authority" }}
+                    </div>
+                    <p style="font-size: 14pt; color: #0c5460; margin: 0;">{{ custom_notification }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+
+        {% block footer %}
+        <div class="poster-footer">
+            <p>Data provided by EPA beaches.ie | Generated: {% now "d M Y H:i" %}</p>
+            <p>For up-to-date information visit: www.beaches.ie</p>
+        </div>
+        {% endblock %}
+    </div>
+</body>
+</html>

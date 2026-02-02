@@ -1,0 +1,118 @@
+{% extends "pdf/base_poster.html" %}
+
+{% block content %}
+<!-- Template 2B: Non-Identified Bathing Water - No Restrictions -->
+
+<!-- Classification Notice -->
+<div class="section">
+    <div style="background: #6c757d; color: white; padding: 20px; border-radius: 10px; text-align: center;">
+        <h3 style="margin-bottom: 10px;">Non-Identified Bathing Water</h3>
+        <p>This location is not an officially designated bathing water</p>
+    </div>
+</div>
+
+<!-- Information -->
+<div class="section">
+    <div class="section-title">Important Information</div>
+    <div style="background: #e3f2fd; border: 2px solid #2196f3; padding: 20px; border-radius: 10px;">
+        <h4 style="color: #1565c0; margin-bottom: 15px;">What does 'Non-Identified' mean?</h4>
+        <ul style="font-size: 13pt;">
+            <li>This bathing water is not regularly monitored by the EPA</li>
+            <li>No official water quality classification is available</li>
+            <li>Water quality may vary and is not guaranteed</li>
+            <li>Swim at your own risk</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Current Status -->
+<div class="section">
+    <div class="section-title">Current Status</div>
+    <div class="water-quality-box good">
+        <div class="quality-label good">No Current Advisories</div>
+        <p style="margin-top: 10px; font-size: 14pt;">
+            No restrictions are currently in place, but water quality is not monitored.
+        </p>
+    </div>
+</div>
+
+<!-- Swimming Safety -->
+<div class="section">
+    <div class="section-title">Swimming Safety Tips</div>
+    <div class="two-column">
+        <div>
+            <h4 style="color: #006699;">Before You Swim:</h4>
+            <ul style="font-size: 12pt;">
+                <li>Check for visible pollution or debris</li>
+                <li>Avoid swimming after heavy rainfall</li>
+                <li>Look for any warning signs</li>
+                <li>Check weather and tide conditions</li>
+            </ul>
+        </div>
+        <div>
+            <h4 style="color: #006699;">While Swimming:</h4>
+            <ul style="font-size: 12pt;">
+                <li>Never swim alone</li>
+                <li>Stay within your depth</li>
+                <li>Be aware of currents</li>
+                <li>Avoid swallowing water</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Facilities -->
+{% if has_toilets or has_parking or has_lifeguard or has_disability_access %}
+<div class="section">
+    <div class="section-title">Facilities Available</div>
+    <div class="facilities-grid">
+        {% if has_toilets %}
+        <div class="facility-item">Toilets</div>
+        {% endif %}
+        {% if has_parking %}
+        <div class="facility-item">Parking</div>
+        {% endif %}
+        {% if has_lifeguard %}
+        <div class="facility-item">Lifeguard (Seasonal)</div>
+        {% endif %}
+        {% if has_disability_access %}
+        <div class="facility-item">Accessible</div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Emergency & More Info -->
+<div class="section">
+    <div class="two-column">
+        <div>
+            <h4 style="color: #006699; margin-bottom: 10px;">Emergency Contact</h4>
+            <p style="font-size: 14pt; background: #f8d7da; padding: 15px; border-radius: 5px;">
+                <strong>In an emergency call:</strong><br>
+                <span style="font-size: 24pt; color: #dc3545;">112 or 999</span><br>
+                Ask for Coast Guard
+            </p>
+        </div>
+        <div>
+            <h4 style="color: #006699; margin-bottom: 10px;">Find Monitored Beaches</h4>
+            <p style="font-size: 12pt; margin-bottom: 15px;">
+                For beaches with water quality monitoring, visit beaches.ie
+            </p>
+            <div class="qr-grid" style="justify-content: flex-start;">
+                {% if qr_beaches_ie %}
+                <div class="qr-item">
+                    <img src="{{ qr_beaches_ie }}" alt="beaches.ie QR" style="width: 80px; height: 80px;">
+                    <div class="qr-label">beaches.ie</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if debug_mode %}
+<div style="background: #fff3cd; padding: 10px; text-align: center; font-size: 10pt; color: #856404;">
+    DEBUG MODE: This poster was generated with mock data
+</div>
+{% endif %}
+{% endblock %}

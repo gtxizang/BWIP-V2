@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    #map {
+        height: 400px;
+        border-radius: 0.375rem;
+    }
+    .marker-excellent { filter: hue-rotate(120deg); }
+    .marker-good { filter: hue-rotate(180deg); }
+    .marker-sufficient { filter: hue-rotate(60deg); }
+    .marker-poor { filter: hue-rotate(0deg); }
+
+    /* Map popup styling */
+    .leaflet-popup-content {
+        min-width: 200px;
+    }
+    .leaflet-popup-content h6 {
+        color: #212529;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    .leaflet-popup-content .btn-generate {
+        display: block;
+        width: 100%;
+        padding: 8px 16px;
+        background-color: #0d6efd;
+        color: #ffffff;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: 500;
+        margin-top: 10px;
+    }
+    .leaflet-popup-content .btn-generate:hover {
+        background-color: #0b5ed7;
+        color: #ffffff;
+    }
+    .leaflet-popup-content .alert-badge {
+        display: inline-block;
+        background-color: #dc3545;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        margin-left: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+    <a href="{% url 'posters:generate' %}" class="btn btn-primary">
+        <i class="bi bi-file-earmark-plus"></i> Generate New Poster
+    </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Locations</h6>
+                        <h2 class="mb-0">{{ location_count }}</h2>
+                    </div>
+                    <div class="display-4 opacity-50">
+                        <i class="bi bi-geo-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Posters Generated</h6>
+                        <h2 class="mb-0">{{ poster_count }}</h2>
+                    </div>
+                    <div class="display-4 opacity-50">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Organisation</h6>
+                        <h5 class="mb-0">{{ user.userprofile.local_authority.code }}</h5>
+                    </div>
+                    <div class="display-4 opacity-50">
+                        <i class="bi bi-building"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Map -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-map"></i> Bathing Water Locations</h5>
+    </div>
+    <div class="card-body">
+        <div id="map"></div>
+    </div>
+</div>
+
+<!-- Recent Posters -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Posters</h5>
+        <a href="{% url 'posters:history' %}" class="btn btn-sm btn-outline-light">View All</a>
+    </div>
+    <div class="card-body">
+        {% if recent_posters %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th>Template</th>
+                        <th>Size</th>
+                        <th>Language</th>
+                        <th>Generated</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for poster in recent_posters %}
+                    <tr>
+                        <td>{{ poster.location.name_en }}</td>
+                        <td><span class="badge bg-secondary">{{ poster.template.code }}</span></td>
+                        <td>{{ poster.size }}</td>
+                        <td>{{ poster.get_language_display }}</td>
+                        <td>{{ poster.generated_at|date:"d M Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'posters:detail' poster.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if poster.pdf_file %}
+                            <a href="{% url 'posters:download' poster.pk %}" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-download"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No posters generated yet. <a href="{% url 'posters:generate' %}">Generate your first poster</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize map
+    const mapData = {{ map_data|safe }};
+    const map = L.map('map').setView([53.5, -7.5], 7);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add markers
+    mapData.forEach(loc => {
+        const marker = L.marker([loc.lat, loc.lng]).addTo(map);
+
+        let qualityClass = '';
+        if (loc.quality_status) {
+            qualityClass = `quality-${loc.quality_status.toLowerCase()}`;
+        }
+
+        const alertBadge = loc.has_alert ?
+            '<span class="alert-badge">Alert Active</span>' : '';
+
+        marker.bindPopup(`
+            <div class="popup-content">
+                <h6>${loc.name}</h6>
+                <p class="mb-1">
+                    <span class="badge bg-${loc.classification === 'IDENTIFIED' ? 'primary' : 'secondary'}">
+                        ${loc.classification}
+                    </span>
+                    ${alertBadge}
+                </p>
+                ${loc.quality_status ? `<p class="mb-1 ${qualityClass}">Water Quality: ${loc.quality_status}</p>` : ''}
+                <a href="{% url 'posters:generate' %}?location=${loc.id}" class="btn-generate">
+                    Generate Poster
+                </a>
+            </div>
+        `);
+    });
+
+    // Fit bounds if we have markers
+    if (mapData.length > 0) {
+        const bounds = L.latLngBounds(mapData.map(loc => [loc.lat, loc.lng]));
+        map.fitBounds(bounds, { padding: [50, 50] });
+    }
+</script>
+{% endblock %}
