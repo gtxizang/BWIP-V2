@@ -15,7 +15,7 @@ from weasyprint import CSS, HTML
 
 from apps.locations.models import Location
 
-from .exceptions import PDFGenerationError, RenderingError, TemplateNotFoundError
+from .exceptions import PDFGenerationError, TemplateNotFoundError
 from .qr_codes import generate_beach_url_qr_code, generate_poster_qr_codes
 
 logger = logging.getLogger(__name__)

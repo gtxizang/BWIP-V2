@@ -19,6 +19,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Authentication (django-allauth with MFA)
     path("accounts/", include("allauth.urls")),
+    # Profile management
+    path("accounts/", include("apps.accounts.urls", namespace="accounts")),
     # Main apps
     path("", include("apps.posters.urls", namespace="posters")),
     path("locations/", include("apps.locations.urls", namespace="locations")),

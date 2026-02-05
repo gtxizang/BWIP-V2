@@ -5,6 +5,8 @@ These settings are for production deployment.
 Ensure all security settings are properly configured.
 """
 
+from decouple import Csv, config
+
 from .base import *  # noqa: F401, F403
 
 # =============================================================================
@@ -13,7 +15,7 @@ from .base import *  # noqa: F401, F403
 
 DEBUG = False
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())  # noqa: F405
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
 # =============================================================================
 # Security Settings
@@ -35,9 +37,6 @@ SESSION_COOKIE_HTTPONLY = True
 
 # Content type options
 SECURE_CONTENT_TYPE_NOSNIFF = True
-
-# XSS filter
-SECURE_BROWSER_XSS_FILTER = True
 
 # X-Frame-Options
 X_FRAME_OPTIONS = "DENY"

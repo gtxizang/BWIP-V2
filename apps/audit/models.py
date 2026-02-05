@@ -82,7 +82,7 @@ class AuditLog(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="audit_logs",
+        related_name="location_audit_logs",
         verbose_name=_("location"),
     )
     poster = models.ForeignKey(
@@ -90,7 +90,7 @@ class AuditLog(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="audit_logs",
+        related_name="poster_audit_logs",
         verbose_name=_("poster"),
     )
 
